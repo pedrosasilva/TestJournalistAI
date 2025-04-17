@@ -64,7 +64,7 @@ app.post("/rewrite", async (req, res) => {
       },
       body: JSON.stringify({
         model: "command-r",
-        message: `Rewrite the following sentence to make it sound clearer and more natural, keeping the original language. Keep the same punctuation. Don't add any of these "". Respond with the rewritten sentence only, no explanations: "${text}"`,
+        message: `Rewrite the following sentence to make it sound clearer and more natural, keeping the original language. Keep the same punctuation. Don't add any of these "". Respond with the rewritten sentence only, no explanations or further comments: "${text}"`,
         temperature: 0.7
       })
     })

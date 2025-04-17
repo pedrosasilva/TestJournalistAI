@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { createEditor, Descendant, BaseEditor, Editor, Transforms, Point, Range, Text } from "slate"
 import { Slate, Editable, withReact, ReactEditor } from "slate-react"
 import { HistoryEditor } from "slate-history"
-import { fetchLinkSuggestions, rewriteWithCohere } from "../utils/utilsAI"
+import { applyRewrite, fetchLinkSuggestions, rewriteWithCohere } from "../utils/utilsAI"
 import { applyLinkToBestMatchInSelection } from "../utils/randomUtils"
 import "../css/styles.css"
 import { FloatingMenu, LinkSuggestion, MenuState } from "./FloatingMenu"
@@ -207,36 +207,25 @@ export const RichTextEditor = () => {
             onSelectLink={(link) => {
               if (!linkRange) return
               const selectedText = Editor.string(editor, linkRange)
-              applyLinkToBestMatchInSelection(editor, selectedText, linkRange, link.url)
+              applyLinkToBestMatchInSelection(editor, selectedText, linkRange, link.title, link.url )
               setLinkSuggestions(null)
               setLinkRange(null)
+              setSelection(null)
               setMenuPosition(null)
             }}
             onAcceptRewrite={() => {
-              if (rewriteRange && rewriteSuggestion) {
-                Transforms.select(editor, rewriteRange)
-                Transforms.delete(editor, { at: rewriteRange })
-                Transforms.insertText(editor, rewriteSuggestion, {
-                  at: rewriteRange.anchor,
-                })
-                const end = Editor.after(editor, rewriteRange.anchor, {
-                  distance: rewriteSuggestion.length,
-                  unit: "character",
-                })
-                if (end) {
-                  const newRange = { anchor: rewriteRange.anchor, focus: end }
-                  Editor.withoutNormalizing(editor, () => {
-                    Transforms.setNodes(
-                      editor,
-                      { rewritten: true },
-                      { match: Text.isText, at: newRange, split: true }
-                    )
-                  })
+                if (rewriteRange && rewriteSuggestion) {
+                    applyRewrite({
+                        editor,
+                        rewriteRange,
+                        rewriteSuggestion,
+                    })
                 }
-              }
-              setRewriteSuggestion(null)
-              setRewriteRange(null)
-              setMenuPosition(null)
+              
+                setRewriteSuggestion(null)
+                setRewriteRange(null)
+                setMenuPosition(null)
+                setSelection(null)
             }}
             onCancel={() => {
               setLinkSuggestions(null)
