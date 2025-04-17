@@ -4,7 +4,7 @@ import { ReactEditor } from "slate-react"
 
 export const fetchLinkSuggestions = async (query: string): Promise<LinkSuggestion[]> => {
     try {
-      const response = await fetch(`/getLinks?query=${encodeURIComponent(query)}`, {
+      const response = await fetch(`/api/getLinks?query=${encodeURIComponent(query)}`, {
         method: "GET"
       })
   
@@ -22,7 +22,7 @@ export const fetchLinkSuggestions = async (query: string): Promise<LinkSuggestio
 }
 
 export async function rewriteWithCohere(text: string): Promise<string> {
-    const response = await fetch(`/rewrite`, {
+    const response = await fetch(`/api/rewrite`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
