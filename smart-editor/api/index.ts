@@ -81,6 +81,4 @@ app.post("/rewrite", async (req, res) => {
   }
 })
 
-app.listen(PORT, () => {
-  console.log(`Backend server running in http://localhost:${PORT}`)
-})
+export default app
