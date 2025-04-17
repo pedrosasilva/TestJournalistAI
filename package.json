@@ -1,0 +1,19 @@
+{
+  "dependencies": {
+    "slate-history": "^0.110.3"
+  },
+  "name": "testjournalistai",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "concurrently \"npm --prefix smart-editor start\" \"npm --prefix server run dev\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

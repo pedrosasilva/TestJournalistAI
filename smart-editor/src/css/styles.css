@@ -1,0 +1,70 @@
+.rich-text-container {
+    position: relative;
+    padding: 20px;
+  }
+  
+.rich-text-editable {
+border: 1px solid #ccc;
+border-radius: 8px;
+min-height: 200px;
+padding: 12px;
+}
+
+.leaf-rewritten {
+background-color: #e6ffed;
+}
+
+.leaf-linked {
+background-color: #e6f0ff;
+text-decoration: underline;
+}
+
+.menu-box {
+  position: absolute;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 8px 12px;
+  z-index: 10;
+  min-width: 160px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.menu-box button {
+  background: none;
+  border: none;
+  padding: 6px 8px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-radius: 4px;
+}
+
+.menu-box button:hover {
+  background-color: #f0f4ff;
+}
+
+.menu-box .link-suggestion-title {
+  font-weight: 500;
+}
+
+.menu-box .link-suggestion-url {
+  font-size: 12px;
+  color: #555;
+  margin-top: 2px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
