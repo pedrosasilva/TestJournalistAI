@@ -1,0 +1,12 @@
+node_modules/.bin/conc
+node_modules/.bin/concurrently
+node_modules/.bin/tree-kill
+server/node_modules/.bin/acorn
+server/node_modules/.bin/ts-node
+server/node_modules/.bin/ts-node-cwd
+server/node_modules/.bin/ts-node-esm
+server/node_modules/.bin/ts-node-script
+server/node_modules/.bin/ts-node-transpile-only
+server/node_modules/.bin/ts-script
+server/node_modules/.bin/tsc
+server/node_modules/.bin/tsserver
