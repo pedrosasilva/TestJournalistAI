@@ -10,8 +10,6 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-const PORT = process.env.PORT || 4000
-
 app.use((req, res, next) => {
   console.log(` ${req.method} ${req.url}`)
   if (req.body && Object.keys(req.body).length > 0) {
