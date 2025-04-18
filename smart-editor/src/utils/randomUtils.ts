@@ -31,13 +31,29 @@ export function applyLinkToBestMatchInSelection(
       console.error("No matching substring found")
       return
     }
+
+    let wordStart = bestStart
+    while (wordStart > 0 && /\w/.test(selectedText[wordStart - 1])) {
+      wordStart--
+    }
+    let wordEnd = bestStart + bestMatch.length
+    while (wordEnd < selectedText.length && /\w/.test(selectedText[wordEnd])) {
+      wordEnd++
+    }
   
     const anchor = Editor.point(editor, range.anchor, { edge: "start" })
     const focus = Editor.point(editor, range.focus, { edge: "start" })
     const baseOffset = Math.min(anchor.offset, focus.offset)
-  
-    const start = { path: anchor.path, offset: baseOffset + bestStart }
-    const end = { path: anchor.path, offset: baseOffset + bestStart + bestMatch.length }
+
+    const start: Point = {
+      path: anchor.path,
+      offset: baseOffset + wordStart,
+    }
+
+    const end: Point = {
+      path: anchor.path,
+      offset: baseOffset + wordEnd,
+    }
   
     const linkRange: Range = { anchor: start, focus: end }
   

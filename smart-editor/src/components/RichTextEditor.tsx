@@ -67,6 +67,7 @@ export const RichTextEditor = () => {
   const editor = useMemo(() => withReact(createEditor()), [])
   const [value, setValue] = useState<Descendant[]>(initialValue)
 
+  const [disableLinks, setDisableLinks] = useState(false)
   const [selection, setSelection] = useState<Range | null>(null)
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null)
 
@@ -123,11 +124,17 @@ export const RichTextEditor = () => {
 
       if (selection && !Range.isCollapsed(selection)) {
         const selectedText = Editor.string(editor, selection)
-        if (selectedText.trim() === "" || !/[a-zA-Z]/.test(selectedText)) {
+        if (selectedText.trim() === "" || !/[a-zA-Z0-9]/.test(selectedText)) {
             setSelection(null)
             setMenuPosition(null)
             return
         }
+        setDisableLinks(!!Array.from(
+            Editor.nodes(editor, {
+              at: selection,
+              match: (n) => Text.isText(n) && !!(n as any).linked,
+            })
+          ).length)
 
         const domRange = ReactEditor.toDOMRange(editor, selection)
         const rect = domRange.getBoundingClientRect()
@@ -167,7 +174,7 @@ export const RichTextEditor = () => {
           const { selection } = editor
           if (selection && !Range.isCollapsed(selection)) {
             const selectedText = Editor.string(editor, selection)
-            if (selectedText.trim() === "" || !/[a-zA-Z]/.test(selectedText)) {
+            if (selectedText.trim() === "" || !/[a-zA-Z0-9]/.test(selectedText)) {
                 setSelection(null)
                 setMenuPosition(null)
                 return
@@ -192,6 +199,7 @@ export const RichTextEditor = () => {
             editor={editor}
             position={menuPosition}
             state={menuState}
+            disableLinks={disableLinks}
             linkSuggestions={linkSuggestions}
             rewriteSuggestion={rewriteSuggestion}
             onRequestRewrite={async () => {

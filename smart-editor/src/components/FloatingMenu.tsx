@@ -26,6 +26,7 @@ interface FloatingMenuProps {
     onSelectLink: (link: LinkSuggestion) => void
     onAcceptRewrite: () => void
     onCancel: () => void
+    disableLinks?: boolean
 }
 
 export const FloatingMenu: React.FC<FloatingMenuProps> = ({
@@ -38,6 +39,7 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({
   onSelectLink,
   onAcceptRewrite,
   onCancel,
+  disableLinks = false, // valor padrão
 }) => {
   return (
     <div
@@ -50,7 +52,9 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({
       {state === "idle" && (
         <div className="menu-buttons">
           <button onClick={onRequestRewrite}>✏️ Rewrite</button>
-          <button onClick={onRequestLinks}>🔗 Add link</button>
+          {!disableLinks && (
+            <button onClick={onRequestLinks}>🔗 Add link</button>
+          )}
         </div>
       )}
 
