@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { createEditor, Descendant, BaseEditor, Editor, Transforms, Point, Range, Text } from "slate"
+import { createEditor, Descendant, BaseEditor, Editor, Transforms, Point, Range, Text, Node, Path } from "slate"
 import { Slate, Editable, withReact, ReactEditor } from "slate-react"
 import { HistoryEditor } from "slate-history"
 import { fetchLinkSuggestions, rewriteWithCohere } from "../utils/utilsAI"
@@ -38,30 +38,79 @@ const initialValue: Descendant[] = [
   }
 ]
 
-function expandSelectionToWord(editor: Editor, selection: Range): Range {
-  let { anchor, focus } = selection
-
-  const anchorBefore = Editor.before(editor, anchor, { unit: "character" })
-  const anchorAfter = Editor.after(editor, anchor, { unit: "character" })
-  const focusBefore = Editor.before(editor, focus, { unit: "character" })
-  const focusAfter = Editor.after(editor, focus, { unit: "character" })
-
-  const isMiddle = (point: Point, before?: Point | null, after?: Point | null) => {
-    const charBefore = before ? Editor.string(editor, { anchor: before, focus: point }) : " "
-    const charAfter = after ? Editor.string(editor, { anchor: point, focus: after }) : " "
-    return /\w/.test(charBefore) && /\w/.test(charAfter)
+export function expandSelectionToWord(editor: Editor, selection: Range): Range {
+    const isBackward = Range.isBackward(selection)
+    const fullText = Editor.string(editor, [])
+  
+    const start = Editor.start(editor, selection)
+    const end = Editor.end(editor, selection)
+  
+    // Convert start/end into absolute offsets
+    let offset = 0
+    let startOffset = 0
+    let endOffset = 0
+  
+    for (const [node, path] of Node.texts(editor)) {
+      const text = Node.string(node)
+      if (Path.equals(path, start.path)) {
+        startOffset = offset + start.offset
+      }
+      if (Path.equals(path, end.path)) {
+        endOffset = offset + end.offset
+      }
+      offset += text.length
+    }
+  
+    // Expand to word boundaries
+    const isWordChar = (char: string) => /\w/.test(char)
+  
+    let newStartOffset = startOffset
+    while (newStartOffset > 0 && isWordChar(fullText[newStartOffset - 1])) {
+      newStartOffset--
+    }
+  
+    let newEndOffset = endOffset
+    while (newEndOffset < fullText.length && isWordChar(fullText[newEndOffset])) {
+      newEndOffset++
+    }
+  
+    // Convert absolute offsets back into Points
+    let currentOffset = 0
+    let newAnchor: Point | null = null
+    let newFocus: Point | null = null
+  
+    for (const [node, path] of Node.texts(editor)) {
+      const text = Node.string(node)
+      const textLength = text.length
+  
+      if (!newAnchor && currentOffset + textLength >= newStartOffset) {
+        newAnchor = {
+          path,
+          offset: newStartOffset - currentOffset,
+        }
+      }
+  
+      if (!newFocus && currentOffset + textLength >= newEndOffset) {
+        newFocus = {
+          path,
+          offset: newEndOffset - currentOffset,
+        }
+      }
+  
+      currentOffset += textLength
+  
+      if (newAnchor && newFocus) break
+    }
+  
+    if (!newAnchor || !newFocus) {
+      // fallback: return original
+      return selection
+    }
+  
+    return isBackward
+      ? { anchor: newFocus, focus: newAnchor }
+      : { anchor: newAnchor, focus: newFocus }
   }
-
-  if (isMiddle(anchor, anchorBefore, anchorAfter)) {
-    anchor = Editor.before(editor, anchor, { unit: "word" }) ?? anchor
-  }
-
-  if (isMiddle(focus, focusBefore, focusAfter)) {
-    focus = Editor.after(editor, focus, { unit: "word" }) ?? focus
-  }
-
-  return { anchor, focus }
-}
 
 export const RichTextEditor = () => {
   const editor = useMemo(() => withReact(createEditor()), [])
@@ -278,6 +327,13 @@ const Leaf = ({ attributes, children, leaf }: any) => {
           target="_blank"
           rel="noopener noreferrer"
           className={classNames.join(" ")}
+          onClick={(e) => {
+            const selection = window.getSelection()
+            if (selection && selection.toString().length === 0) {
+              window.open(leaf.url, "_blank", "noopener,noreferrer")
+            }
+          }}
+          style={{ cursor: "pointer", textDecoration: "underline", color: "#1a0dab" }}
         >
           {children}
         </a>

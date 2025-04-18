@@ -22,9 +22,12 @@ app.use((req, res, next) => {
 
 app.get("/getLinks", async (req, res) => {
   const query = req.query.query as string
+  console.log("[GET /getLinks] Query recebida:", query)
 
-const baseUrl = process.env.JINA_API_URL ?? "https://s.jina.ai"
-const url = `${baseUrl}?q=${encodeURIComponent(query)}`
+  const baseUrl = process.env.JINA_API_URL ?? "https://s.jina.ai"
+  const url = `${baseUrl}?q=${encodeURIComponent(query)}`
+  console.log("[GET /getLinks] URL chamada:", url)
+
   try {
     const response = await fetch(url, {
       method: "GET",
@@ -35,19 +38,22 @@ const url = `${baseUrl}?q=${encodeURIComponent(query)}`
     })
 
     const text = await response.text()
+    console.log("[GET /getLinks] Texto retornado da Jina API:\n", text)
 
     const entries: LinkSuggestion[] = []
     const entryRegex = /\[(\d+)] Title: (.*?)\n\[\1] URL Source: (.*?)\n/g
 
     let match
     while ((match = entryRegex.exec(text)) !== null) {
-      const [, , title, url] = match
+      const [, index, title, url] = match
+      console.log(`[GET /getLinks] Match ${index}:`, { title, url })
       entries.push({ title, url })
     }
 
+    console.log("[GET /getLinks] Total de links extraídos:", entries.length)
     res.json(entries.slice(0, 3))
   } catch (err) {
-    console.error("Error getting links", err)
+    console.error("❌ Erro ao buscar links:", err)
     res.status(500).json({ error: "Error getting links" })
   }
 })
@@ -82,6 +88,7 @@ app.post("/rewrite", async (req, res) => {
     } catch (parseError) {
       console.error("[/rewrite] Error parsing JSON:", parseError)
     }
+    console.log("[POST /rewrite] Text returned by Rewrite API:\n", data)
 
     const rewritten = data.paraphrase?.trim()
 
