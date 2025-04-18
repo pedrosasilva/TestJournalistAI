@@ -1,4 +1,4 @@
-import { Editor, Range, Text, Transforms } from "slate"
+import { Editor, Point, Range, Text, Transforms } from "slate"
 import { ReactEditor } from "slate-react"
 
 export function applyLinkToBestMatchInSelection(
@@ -53,6 +53,7 @@ export function applyLinkToBestMatchInSelection(
   }
 }
 
+
 export function applyRewrite({
   editor,
   rewriteRange,
@@ -67,40 +68,38 @@ export function applyRewrite({
       Editor.nodes(editor, {
         at: rewriteRange,
         match: (n) =>
-          Text.isText(n) &&
-          (n as any).linked &&
-          !!(n as any).url,
+          Text.isText(n) && (n as any).linked && !!(n as any).url,
       })
     )
-  
+
     const linkedNode = linkedNodeEntry?.[0] as
       | (Text & { linked?: boolean; url?: string })
       | undefined
-  
-    Transforms.select(editor, rewriteRange)
-    Transforms.delete(editor, { at: rewriteRange })
-    Transforms.insertText(editor, rewriteSuggestion, {
-      at: rewriteRange.anchor,
+
+    const start = Editor.start(editor, rewriteRange)
+
+    Editor.withoutNormalizing(editor, () => {
+      Transforms.delete(editor, { at: rewriteRange })
+      Transforms.insertText(editor, rewriteSuggestion, { at: start })
+
+      const end: Point = {
+        path: start.path,
+        offset: start.offset + rewriteSuggestion.length,
+      }
+
+      const rewrittenRange: Range = { anchor: start, focus: end }
+
+      Transforms.setNodes(
+        editor,
+        {
+          rewritten: true,
+          ...(linkedNode && { linked: true, url: linkedNode.url }),
+        },
+        { at: rewrittenRange, match: Text.isText, split: true }
+      )
     })
-  
-    const end = Editor.after(editor, rewriteRange.anchor, {
-      distance: rewriteSuggestion.length,
-      unit: "character",
-    })
-  
-    if (end) {
-      const newRange = { anchor: rewriteRange.anchor, focus: end }
-      Editor.withoutNormalizing(editor, () => {
-        Transforms.setNodes(
-          editor,
-          {
-            rewritten: true,
-            ...(linkedNode && { linked: true, url: linkedNode.url }),
-          },
-          { match: Text.isText, at: newRange, split: true }
-        )
-      })
-    }
+
+    Transforms.deselect(editor)
   } catch (error) {
     console.error("Error applying rewrite:", error)
   }

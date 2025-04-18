@@ -55,8 +55,8 @@ const url = `${baseUrl}?q=${encodeURIComponent(query)}`
 app.post("/rewrite", async (req, res) => {
   const { text } = req.body
 
-  const endpoint = process.env.COHERE_API_URL || "https://tinq.ai/api/v2/rewrite"
-  const apiKey = process.env.COHERE_API_KEY
+  const endpoint = process.env.REWRITE_API_URL || "https://tinq.ai/api/v2/rewrite"
+  const apiKey = process.env.REWRITE_API_KEY
 
   const requestBody = {
     text,
