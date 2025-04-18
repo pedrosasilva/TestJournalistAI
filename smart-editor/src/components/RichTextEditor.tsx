@@ -2,16 +2,16 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { createEditor, Descendant, BaseEditor, Editor, Transforms, Point, Range, Text } from "slate"
 import { Slate, Editable, withReact, ReactEditor } from "slate-react"
 import { HistoryEditor } from "slate-history"
-import { applyRewrite, fetchLinkSuggestions, rewriteWithCohere } from "../utils/utilsAI"
-import { applyLinkToBestMatchInSelection } from "../utils/randomUtils"
+import { fetchLinkSuggestions, rewriteWithCohere } from "../utils/utilsAI"
+import { applyLinkToBestMatchInSelection, applyRewrite } from "../utils/randomUtils"
 import "../css/styles.css"
 import { FloatingMenu, LinkSuggestion, MenuState } from "./FloatingMenu"
 
 type CustomText = {
   text: string
-  rewritten?: boolean
-  linked?: boolean
-  url?: string
+  rewritten?: boolean | null
+  linked?: boolean | null
+  url?: string | null
 }
 
 type ParagraphElement = {
@@ -123,7 +123,7 @@ export const RichTextEditor = () => {
 
       if (selection && !Range.isCollapsed(selection)) {
         const selectedText = Editor.string(editor, selection)
-        if (selectedText.trim() === "") {
+        if (selectedText.trim() === "" || !/[a-zA-Z]/.test(selectedText)) {
             setSelection(null)
             setMenuPosition(null)
             return
@@ -148,6 +148,15 @@ export const RichTextEditor = () => {
 
   const renderLeaf = useCallback((props: any) => <Leaf {...props} />, [])
 
+  const clearUI = () => {
+    Transforms.deselect(editor)
+    setLinkSuggestions(null)
+    setRewriteSuggestion(null)
+    setLinkRange(null)
+    setRewriteRange(null)
+    setMenuPosition(null)
+    setSelection(null)
+  }
   return (
     <div ref={containerRef} className="rich-text-container">
       <Slate
@@ -158,9 +167,10 @@ export const RichTextEditor = () => {
           const { selection } = editor
           if (selection && !Range.isCollapsed(selection)) {
             const selectedText = Editor.string(editor, selection)
-            if (selectedText.trim() === "") {
-              setSelection(null)
-              setMenuPosition(null)
+            if (selectedText.trim() === "" || !/[a-zA-Z]/.test(selectedText)) {
+                setSelection(null)
+                setMenuPosition(null)
+                return
             } else {
               setSelection(selection)
             }
@@ -208,10 +218,7 @@ export const RichTextEditor = () => {
               if (!linkRange) return
               const selectedText = Editor.string(editor, linkRange)
               applyLinkToBestMatchInSelection(editor, selectedText, linkRange, link.title, link.url )
-              setLinkSuggestions(null)
-              setLinkRange(null)
-              setSelection(null)
-              setMenuPosition(null)
+              clearUI()
             }}
             onAcceptRewrite={() => {
                 if (rewriteRange && rewriteSuggestion) {
@@ -221,18 +228,10 @@ export const RichTextEditor = () => {
                         rewriteSuggestion,
                     })
                 }
-              
-                setRewriteSuggestion(null)
-                setRewriteRange(null)
-                setMenuPosition(null)
-                setSelection(null)
+                clearUI()
             }}
             onCancel={() => {
-              setLinkSuggestions(null)
-              setRewriteSuggestion(null)
-              setLinkRange(null)
-              setRewriteRange(null)
-              setMenuPosition(null)
+                clearUI()
             }}
           />
           

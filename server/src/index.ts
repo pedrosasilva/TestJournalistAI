@@ -55,31 +55,42 @@ const url = `${baseUrl}?q=${encodeURIComponent(query)}`
 app.post("/rewrite", async (req, res) => {
   const { text } = req.body
 
+  const endpoint = process.env.COHERE_API_URL || "https://tinq.ai/api/v2/rewrite"
+  const apiKey = process.env.COHERE_API_KEY
+
+  const requestBody = {
+    text,
+    mode: "advanced",
+    lang: "en"
+  }
+
   try {
-    const response = await fetch(`${process.env.COHERE_API_URL || "https://api.cohere.ai/v1/chat"}`, {
+    const response = await fetch(endpoint, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.COHERE_API_KEY}`,
+        "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        model: "command-r",
-        message: `Rewrite the following sentence to make it sound clearer and more natural, keeping the original language. Keep the same punctuation. Don't add any of these "". Respond with the rewritten sentence only, no explanations or further comments: "${text}"`,
-        temperature: 0.7
-      })
+      body: JSON.stringify(requestBody)
     })
 
-    const data = await response.json() as {
-      text: any
+    const rawData = await response.text()
+
+    let data
+    try {
+      data = JSON.parse(rawData)
+    } catch (parseError) {
+      console.error("[/rewrite] Error parsing JSON:", parseError)
     }
 
-    const rewritten = data.text?.trim()
+    const rewritten = data.paraphrase?.trim()
+
     res.json({ rewritten })
   } catch (error) {
-    console.error("Error Calling Cohere API:", error)
-    res.status(500).json({ error: "Error rewriting text" })
+    console.error("[/rewrite] Error calling external API:", error)
   }
 })
+
 
 app.listen(PORT, () => {
   console.log(`Backend server running in http://localhost:${PORT}`)

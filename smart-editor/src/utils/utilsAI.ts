@@ -1,6 +1,4 @@
 import { LinkSuggestion } from "../components/FloatingMenu"
-import { Editor, Transforms, Text, Range } from "slate"
-import { ReactEditor } from "slate-react"
 
 export const fetchLinkSuggestions = async (query: string): Promise<LinkSuggestion[]> => {
     try {
@@ -37,57 +35,4 @@ export async function rewriteWithCohere(text: string): Promise<string> {
     const data = await response.json()
     const rewritten = data.rewritten?.trim()
     return rewritten || text
-}
-
-export function applyRewrite({
-  editor,
-  rewriteRange,
-  rewriteSuggestion,
-}: {
-  editor: Editor & ReactEditor
-  rewriteRange: Range
-  rewriteSuggestion: string
-}) {
-  try {
-    const [linkedNodeEntry] = Array.from(
-      Editor.nodes(editor, {
-        at: rewriteRange,
-        match: (n) =>
-          Text.isText(n) &&
-          (n as any).linked &&
-          !!(n as any).url,
-      })
-    )
-  
-    const linkedNode = linkedNodeEntry?.[0] as
-      | (Text & { linked?: boolean; url?: string })
-      | undefined
-  
-    Transforms.select(editor, rewriteRange)
-    Transforms.delete(editor, { at: rewriteRange })
-    Transforms.insertText(editor, rewriteSuggestion, {
-      at: rewriteRange.anchor,
-    })
-  
-    const end = Editor.after(editor, rewriteRange.anchor, {
-      distance: rewriteSuggestion.length,
-      unit: "character",
-    })
-  
-    if (end) {
-      const newRange = { anchor: rewriteRange.anchor, focus: end }
-      Editor.withoutNormalizing(editor, () => {
-        Transforms.setNodes(
-          editor,
-          {
-            rewritten: true,
-            ...(linkedNode && { linked: true, url: linkedNode.url }),
-          },
-          { match: Text.isText, at: newRange, split: true }
-        )
-      })
-    }
-  } catch (error) {
-    console.error("Error applying rewrite:", error)
-  }
 }
