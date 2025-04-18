@@ -2,7 +2,7 @@ import { LinkSuggestion } from "../components/FloatingMenu"
 
 export const fetchLinkSuggestions = async (query: string): Promise<LinkSuggestion[]> => {
     try {
-      const response = await fetch(`http://localhost:4000/getLinks?query=${encodeURIComponent(query)}`, {
+      const response = await fetch(`https://testjournalistai-1.onrender.com/getLinks?query=${encodeURIComponent(query)}`, {
         method: "GET"
       })
   
@@ -20,7 +20,7 @@ export const fetchLinkSuggestions = async (query: string): Promise<LinkSuggestio
 }
 
 export async function rewriteWithCohere(text: string): Promise<string> {
-    const response = await fetch("http://localhost:4000/rewrite", {
+    const response = await fetch("https://testjournalistai-1.onrender.com/rewrite", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
