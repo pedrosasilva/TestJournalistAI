@@ -172,6 +172,7 @@ export const RichTextEditor = () => {
         onChange={(newValue) => {
           setValue(newValue)
           const { selection } = editor
+
           if (selection && !Range.isCollapsed(selection)) {
             const selectedText = Editor.string(editor, selection)
             if (selectedText.trim() === "" || !/[a-zA-Z0-9]/.test(selectedText)) {
@@ -189,6 +190,20 @@ export const RichTextEditor = () => {
       >
         <Editable
           renderLeaf={renderLeaf}
+          onKeyUp={() => {
+            const allText = Editor.string(editor, {
+              anchor: Editor.start(editor, []),
+              focus: Editor.end(editor, []),
+            })
+        
+            if (allText.trim() === "") {
+              Transforms.setNodes(
+                editor,
+                { rewritten: null, linked: null, url: null },
+                { at: [], match: Text.isText }
+              )
+            }
+          }}
           onMouseUp={handleMouseUp}
           placeholder="Write anything!"
           className="rich-text-editable"
