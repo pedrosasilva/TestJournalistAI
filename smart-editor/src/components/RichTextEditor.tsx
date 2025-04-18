@@ -45,7 +45,6 @@ export function expandSelectionToWord(editor: Editor, selection: Range): Range {
     const start = Editor.start(editor, selection)
     const end = Editor.end(editor, selection)
   
-    // Convert start/end into absolute offsets
     let offset = 0
     let startOffset = 0
     let endOffset = 0
@@ -61,7 +60,6 @@ export function expandSelectionToWord(editor: Editor, selection: Range): Range {
       offset += text.length
     }
   
-    // Expand to word boundaries
     const isWordChar = (char: string) => /\w/.test(char)
   
     let newStartOffset = startOffset
@@ -74,7 +72,6 @@ export function expandSelectionToWord(editor: Editor, selection: Range): Range {
       newEndOffset++
     }
   
-    // Convert absolute offsets back into Points
     let currentOffset = 0
     let newAnchor: Point | null = null
     let newFocus: Point | null = null
@@ -103,7 +100,6 @@ export function expandSelectionToWord(editor: Editor, selection: Range): Range {
     }
   
     if (!newAnchor || !newFocus) {
-      // fallback: return original
       return selection
     }
   

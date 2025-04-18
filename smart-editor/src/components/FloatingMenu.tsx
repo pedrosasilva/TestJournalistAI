@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react"
 import LoadingSpinner from "./LoadingSpinner"
-import { BaseRange, Editor } from "slate"
+import { Editor } from "slate"
 
 export type MenuState =
   | "idle"
@@ -39,7 +39,7 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({
   onSelectLink,
   onAcceptRewrite,
   onCancel,
-  disableLinks = false, // valor padrão
+  disableLinks = false,
 }) => {
   return (
     <div
